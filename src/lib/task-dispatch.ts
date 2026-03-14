@@ -312,8 +312,8 @@ export async function runAegisReviews(): Promise<{ ok: boolean; message: string 
       // only returns lifecycle metadata (runId/status/timestamps) and never includes
       // the agent's actual text, so Aegis could never parse a verdict.
       const finalResult = await runOpenClaw(
-        ['gateway', 'call', 'agent', '--expect-final', '--timeout', '120000', '--params', JSON.stringify(invokeParams), '--json'],
-        { timeoutMs: 125_000 }
+        ['gateway', 'call', 'agent', '--expect-final', '--timeout', '300000', '--params', JSON.stringify(invokeParams), '--json'],
+        { timeoutMs: 305_000 }
       )
       const finalPayload = parseGatewayJson(finalResult.stdout)
         ?? parseGatewayJson(String((finalResult as any)?.stderr || ''))
@@ -479,8 +479,8 @@ export async function dispatchAssignedTasks(): Promise<{ ok: boolean; message: s
       // response payload (result.payloads[0].text). The two-step agent → agent.wait
       // pattern only returns lifecycle metadata and never includes the agent's text.
       const finalResult = await runOpenClaw(
-        ['gateway', 'call', 'agent', '--expect-final', '--timeout', '120000', '--params', JSON.stringify(invokeParams), '--json'],
-        { timeoutMs: 125_000 }
+        ['gateway', 'call', 'agent', '--expect-final', '--timeout', '600000', '--params', JSON.stringify(invokeParams), '--json'],
+        { timeoutMs: 610_000 }
       )
       const finalPayload = parseGatewayJson(finalResult.stdout)
         ?? parseGatewayJson(String((finalResult as any)?.stderr || ''))
