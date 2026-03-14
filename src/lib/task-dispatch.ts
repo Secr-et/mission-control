@@ -168,7 +168,11 @@ interface ReviewableTask {
   project_ticket_no: number | null
 }
 
-function resolveGatewayAgentIdForReview(task: ReviewableTask): string {
+function resolveGatewayAgentIdForReview(task: ReviewableTask & { project_review_agent?: string | null }): string {
+  // Project-level review_agent takes priority (e.g., quinn for coding projects)
+  if (task.project_review_agent) return task.project_review_agent
+
+  // Fall back to agent config openclawId
   if (task.agent_config) {
     try {
       const cfg = JSON.parse(task.agent_config)
@@ -233,14 +237,16 @@ export async function runAegisReviews(): Promise<{ ok: boolean; message: string 
 
   const tasks = db.prepare(`
     SELECT t.id, t.title, t.description, t.resolution, t.assigned_to, t.workspace_id,
-           p.ticket_prefix, t.project_ticket_no, a.config as agent_config
+           p.ticket_prefix, t.project_ticket_no, a.config as agent_config,
+           COALESCE(p.skip_review, 0) as skip_review,
+           p.review_agent as project_review_agent
     FROM tasks t
     LEFT JOIN projects p ON p.id = t.project_id AND p.workspace_id = t.workspace_id
     LEFT JOIN agents a ON a.name = t.assigned_to AND a.workspace_id = t.workspace_id
     WHERE t.status = 'review'
     ORDER BY t.updated_at ASC
     LIMIT 3
-  `).all() as ReviewableTask[]
+  `).all() as (ReviewableTask & { skip_review: number; project_review_agent: string | null })[]
 
   if (tasks.length === 0) {
     return { ok: true, message: 'No tasks awaiting review' }
@@ -249,6 +255,37 @@ export async function runAegisReviews(): Promise<{ ok: boolean; message: string 
   const results: Array<{ id: number; verdict: string; error?: string }> = []
 
   for (const task of tasks) {
+    // If project has skip_review enabled, auto-approve and move to done
+    if (task.skip_review) {
+      db.prepare('UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?')
+        .run('done', Math.floor(Date.now() / 1000), task.id)
+
+      db.prepare(`
+        INSERT INTO quality_reviews (task_id, reviewer, status, notes, workspace_id)
+        VALUES (?, 'system', 'approved', 'Auto-approved: project has skip_review enabled', ?)
+      `).run(task.id, task.workspace_id)
+
+      eventBus.broadcast('task.status_changed', {
+        id: task.id,
+        status: 'done',
+        previous_status: 'review',
+      })
+
+      db_helpers.logActivity(
+        'aegis_review',
+        'task',
+        task.id,
+        'system',
+        `Auto-approved task "${task.title}": skip_review enabled on project`,
+        { verdict: 'approved', notes: 'skip_review' },
+        task.workspace_id
+      )
+
+      results.push({ id: task.id, verdict: 'approved (skip_review)' })
+      logger.info({ taskId: task.id }, 'Task auto-approved via skip_review')
+      continue
+    }
+
     // Move to quality_review to prevent re-processing
     db.prepare('UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?')
       .run('quality_review', Math.floor(Date.now() / 1000), task.id)

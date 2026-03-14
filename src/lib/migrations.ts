@@ -1262,6 +1262,15 @@ const migrations: Migration[] = [
       db.exec(`CREATE INDEX IF NOT EXISTS idx_gateway_health_logs_gateway_id ON gateway_health_logs(gateway_id)`)
       db.exec(`CREATE INDEX IF NOT EXISTS idx_gateway_health_logs_probed_at ON gateway_health_logs(probed_at)`)
     }
+  },
+  {
+    id: '042_project_review_config',
+    up(db: Database.Database) {
+      const cols = db.prepare(`PRAGMA table_info(projects)`).all() as Array<{ name: string }>
+      const hasCol = (name: string) => cols.some((c) => c.name === name)
+      if (!hasCol('skip_review')) db.exec(`ALTER TABLE projects ADD COLUMN skip_review INTEGER NOT NULL DEFAULT 0`)
+      if (!hasCol('review_agent')) db.exec(`ALTER TABLE projects ADD COLUMN review_agent TEXT`)
+    }
   }
 ]
 

@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     const rows = db.prepare(`
       SELECT p.id, p.workspace_id, p.name, p.slug, p.description, p.ticket_prefix, p.ticket_counter, p.status,
-             p.github_repo, p.deadline, p.color, p.github_sync_enabled, p.github_labels_initialized, p.github_default_branch, p.created_at, p.updated_at,
+             p.github_repo, p.deadline, p.color, p.github_sync_enabled, p.github_labels_initialized, p.github_default_branch, p.skip_review, p.review_agent, p.created_at, p.updated_at,
              (SELECT COUNT(*) FROM tasks t WHERE t.project_id = p.id) as task_count,
              (SELECT GROUP_CONCAT(paa.agent_name) FROM project_agent_assignments paa WHERE paa.project_id = p.id) as assigned_agents_csv
       FROM projects p
@@ -92,6 +92,8 @@ export async function POST(request: NextRequest) {
     const githubRepo = typeof body?.github_repo === 'string' ? body.github_repo.trim() || null : null
     const deadline = typeof body?.deadline === 'number' ? body.deadline : null
     const color = typeof body?.color === 'string' ? body.color.trim() || null : null
+    const skipReview = body?.skip_review ? 1 : 0
+    const reviewAgent = typeof body?.review_agent === 'string' ? body.review_agent.trim() || null : null
 
     if (!name) return NextResponse.json({ error: 'Project name is required' }, { status: 400 })
 
@@ -110,13 +112,13 @@ export async function POST(request: NextRequest) {
     }
 
     const result = db.prepare(`
-      INSERT INTO projects (workspace_id, name, slug, description, ticket_prefix, github_repo, deadline, color, status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', unixepoch(), unixepoch())
-    `).run(workspaceId, name, slug, description || null, ticketPrefix, githubRepo, deadline, color)
+      INSERT INTO projects (workspace_id, name, slug, description, ticket_prefix, github_repo, deadline, color, skip_review, review_agent, status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', unixepoch(), unixepoch())
+    `).run(workspaceId, name, slug, description || null, ticketPrefix, githubRepo, deadline, color, skipReview, reviewAgent)
 
     const project = db.prepare(`
       SELECT id, workspace_id, name, slug, description, ticket_prefix, ticket_counter, status,
-             github_repo, deadline, color, github_sync_enabled, github_labels_initialized, github_default_branch, created_at, updated_at
+             github_repo, deadline, color, github_sync_enabled, github_labels_initialized, github_default_branch, skip_review, review_agent, created_at, updated_at
       FROM projects
       WHERE id = ?
     `).get(Number(result.lastInsertRowid))
