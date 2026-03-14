@@ -1271,6 +1271,40 @@ const migrations: Migration[] = [
       if (!hasCol('skip_review')) db.exec(`ALTER TABLE projects ADD COLUMN skip_review INTEGER NOT NULL DEFAULT 0`)
       if (!hasCol('review_agent')) db.exec(`ALTER TABLE projects ADD COLUMN review_agent TEXT`)
     }
+  },
+  {
+    id: '043_scored_items',
+    up(db: Database.Database) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS scored_items (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          workspace_id INTEGER NOT NULL DEFAULT 1,
+          source TEXT NOT NULL,
+          domain TEXT NOT NULL,
+          title TEXT NOT NULL,
+          url TEXT NOT NULL,
+          summary TEXT,
+          relevance_score REAL NOT NULL DEFAULT 0,
+          actionability_score REAL NOT NULL DEFAULT 0,
+          urgency_score REAL NOT NULL DEFAULT 0,
+          final_score REAL NOT NULL DEFAULT 0,
+          domain_weight REAL NOT NULL DEFAULT 1.0,
+          analysis TEXT,
+          classification TEXT NOT NULL DEFAULT 'noise',
+          actioned INTEGER NOT NULL DEFAULT 0,
+          action_type TEXT,
+          action_ref TEXT,
+          fetched_at INTEGER NOT NULL DEFAULT (unixepoch()),
+          processed_at INTEGER,
+          created_at INTEGER NOT NULL DEFAULT (unixepoch())
+        )
+      `)
+      db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_scored_items_url ON scored_items(workspace_id, url)`)
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_scored_items_score ON scored_items(workspace_id, final_score DESC)`)
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_scored_items_actioned ON scored_items(workspace_id, actioned, final_score DESC)`)
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_scored_items_domain ON scored_items(workspace_id, domain)`)
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_scored_items_classification ON scored_items(workspace_id, classification)`)
+    }
   }
 ]
 
