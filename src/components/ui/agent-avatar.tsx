@@ -2,6 +2,7 @@
 
 interface AgentAvatarProps {
   name: string
+  avatarUrl?: string | null
   size?: 'xs' | 'sm' | 'md'
   className?: string
 }
@@ -40,9 +41,21 @@ const sizeClasses: Record<NonNullable<AgentAvatarProps['size']>, string> = {
   md: 'w-8 h-8 text-xs',
 }
 
-export function AgentAvatar({ name, size = 'sm', className = '' }: AgentAvatarProps) {
+export function AgentAvatar({ name, avatarUrl, size = 'sm', className = '' }: AgentAvatarProps) {
   const initials = getInitials(name)
   const colors = getAvatarColors(name)
+  const trimmedAvatarUrl = avatarUrl?.trim()
+
+  if (trimmedAvatarUrl) {
+    return (
+      <img
+        src={trimmedAvatarUrl}
+        alt={name}
+        className={`rounded-full shrink-0 object-cover ${sizeClasses[size]} ${className}`}
+        title={name}
+      />
+    )
+  }
 
   return (
     <div
@@ -55,4 +68,3 @@ export function AgentAvatar({ name, size = 'sm', className = '' }: AgentAvatarPr
     </div>
   )
 }
-

@@ -9,7 +9,7 @@ interface ChatInputProps {
   onSend: (content: string, attachments?: ChatAttachment[]) => void
   onAbort?: () => void
   disabled?: boolean
-  agents?: Array<{ name: string; role: string }>
+  agents?: Array<{ name: string; display_name?: string; avatar_url?: string | null; role: string }>
   isGenerating?: boolean
 }
 
@@ -213,9 +213,10 @@ export function ChatInput({ onSend, onAbort, disabled, agents = [], isGenerating
               }}
             >
               <div className="w-5 h-5 rounded-full bg-surface-2 flex items-center justify-center text-[9px] font-bold text-muted-foreground">
-                {agent.name.charAt(0).toUpperCase()}
+                {(agent.display_name?.trim() || agent.name).charAt(0).toUpperCase()}
               </div>
               <span className="font-medium text-foreground">@{agent.name}</span>
+              <span className="text-muted-foreground text-xs">{agent.display_name?.trim() || agent.name}</span>
               <span className="text-muted-foreground text-xs ml-auto">{agent.role}</span>
             </Button>
           ))}

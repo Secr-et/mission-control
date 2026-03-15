@@ -12,6 +12,8 @@ const log = createClientLogger('AgentDetailTabs')
 interface Agent {
   id: number
   name: string
+  display_name?: string
+  avatar_url?: string | null
   role: string
   session_key?: string
   soul_content?: string

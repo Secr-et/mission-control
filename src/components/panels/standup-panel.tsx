@@ -23,6 +23,7 @@ interface StandupReport {
   agentReports: Array<{
     agent: {
       name: string
+      display_name?: string
       role: string
       status: string
       last_seen?: number
@@ -218,7 +219,7 @@ export function StandupPanel() {
     // Add individual agent reports
     lines.push('## Individual Reports')
     standupReport.agentReports.forEach(report => {
-      lines.push(`### ${report.agent.name} (${report.agent.role})`)
+      lines.push(`### ${report.agent.display_name || report.agent.name} (${report.agent.role})`)
       
       if (report.completedToday.length > 0) {
         lines.push('**Completed Today:**')
@@ -420,7 +421,7 @@ export function StandupPanel() {
                   <div key={report.agent.name} className="bg-card rounded-lg p-4 border border-border">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h5 className="font-semibold text-foreground">{report.agent.name}</h5>
+                        <h5 className="font-semibold text-foreground">{report.agent.display_name || report.agent.name}</h5>
                         <p className="text-muted-foreground text-sm">{report.agent.role}</p>
                       </div>
                       <div className="text-right text-sm">

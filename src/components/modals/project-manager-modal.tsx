@@ -23,6 +23,8 @@ interface Project {
 interface Agent {
   id: number
   name: string
+  display_name?: string
+  avatar_url?: string | null
   role: string
   status: string
 }
@@ -411,7 +413,7 @@ export function ProjectManagerModal({
                                     : 'bg-surface-1 text-muted-foreground border-border hover:border-primary/30'
                                 }`}
                               >
-                                {agent.name}
+                                {agent.display_name?.trim() || agent.name}
                               </button>
                             ))}
                           </div>

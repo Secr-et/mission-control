@@ -49,6 +49,8 @@ interface Task {
 interface Agent {
   id: number
   name: string
+  display_name?: string
+  avatar_url?: string | null
   role: string
   status: 'offline' | 'idle' | 'busy' | 'error'
   taskStats?: {
@@ -589,9 +591,14 @@ export function TaskBoardPanel() {
   }
 
   // Get agent name by session key
-  const getAgentName = (sessionKey?: string) => {
+  const getAgentLabel = (sessionKey?: string) => {
     const agent = agents.find(a => a.name === sessionKey)
-    return agent?.name || sessionKey || 'Unassigned'
+    return agent?.display_name?.trim() || agent?.name || sessionKey || 'Unassigned'
+  }
+
+  const getAgentAvatarUrl = (sessionKey?: string) => {
+    const agent = agents.find(a => a.name === sessionKey)
+    return agent?.avatar_url
   }
 
   if (loading) {
@@ -898,8 +905,8 @@ export function TaskBoardPanel() {
                     <span className="flex items-center gap-1.5 min-w-0 text-xs text-muted-foreground">
                       {task.assigned_to ? (
                         <>
-                          <AgentAvatar name={getAgentName(task.assigned_to)} size="xs" />
-                          <span className="truncate max-w-[8rem]">{getAgentName(task.assigned_to)}</span>
+                          <AgentAvatar name={getAgentLabel(task.assigned_to)} avatarUrl={getAgentAvatarUrl(task.assigned_to)} size="xs" />
+                          <span className="truncate max-w-[8rem]">{getAgentLabel(task.assigned_to)}</span>
                         </>
                       ) : (
                         <span className="text-muted-foreground/50 italic">{t('unassigned')}</span>
@@ -1058,6 +1065,16 @@ function TaskDetailModal({
   const mentionTargets = useMentionTargets()
   const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'quality' | 'session'>('details')
   const [reviewer, setReviewer] = useState('aegis')
+
+  const getAgentLabel = (sessionKey?: string) => {
+    const agent = agents.find(a => a.name === sessionKey)
+    return agent?.display_name?.trim() || agent?.name || sessionKey || 'Unassigned'
+  }
+
+  const getAgentAvatarUrl = (sessionKey?: string) => {
+    const agent = agents.find(a => a.name === sessionKey)
+    return agent?.avatar_url
+  }
 
   const fetchReviews = useCallback(async () => {
     try {
@@ -1339,8 +1356,8 @@ function TaskDetailModal({
                 <span className="text-foreground ml-2 inline-flex items-center gap-1.5">
                   {task.assigned_to ? (
                     <>
-                      <AgentAvatar name={task.assigned_to} size="xs" />
-                      <span>{task.assigned_to}</span>
+                      <AgentAvatar name={getAgentLabel(task.assigned_to)} avatarUrl={getAgentAvatarUrl(task.assigned_to)} size="xs" />
+                      <span>{getAgentLabel(task.assigned_to)}</span>
                     </>
                   ) : (
                     <span>{t('unassigned')}</span>
@@ -1553,6 +1570,8 @@ function TaskDetailModal({
               <TaskSessionFeed
                 sessionId={task.metadata.dispatch_session_id}
                 agentName={task.assigned_to}
+                agentDisplayName={getAgentLabel(task.assigned_to)}
+                agentAvatarUrl={getAgentAvatarUrl(task.assigned_to)}
                 isLive={task.status === 'in_progress'}
               />
             </div>
@@ -1563,7 +1582,19 @@ function TaskDetailModal({
   )
 }
 
-function TaskSessionFeed({ sessionId, agentName, isLive }: { sessionId: string; agentName?: string; isLive: boolean }) {
+function TaskSessionFeed({
+  sessionId,
+  agentName,
+  agentDisplayName,
+  agentAvatarUrl,
+  isLive,
+}: {
+  sessionId: string
+  agentName?: string
+  agentDisplayName?: string
+  agentAvatarUrl?: string | null
+  isLive: boolean
+}) {
   const t = useTranslations('taskBoard')
   const [messages, setMessages] = useState<SessionTranscriptMessage[]>([])
   const [loading, setLoading] = useState(true)
@@ -1609,8 +1640,8 @@ function TaskSessionFeed({ sessionId, agentName, isLive }: { sessionId: string; 
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           {agentName && (
             <span className="flex items-center gap-1.5">
-              <AgentAvatar name={agentName} size="xs" />
-              <span className="font-medium text-foreground">{agentName}</span>
+              <AgentAvatar name={agentDisplayName || agentName} avatarUrl={agentAvatarUrl} size="xs" />
+              <span className="font-medium text-foreground">{agentDisplayName || agentName}</span>
             </span>
           )}
           <span className="font-mono text-muted-foreground/50">{sessionId.slice(0, 12)}...</span>
@@ -1959,7 +1990,7 @@ function CreateTaskModal({
                 <option value="">{t('unassigned')}</option>
                 {agents.map(agent => (
                   <option key={agent.name} value={agent.name}>
-                    {agent.name} ({agent.role})
+                    {(agent.display_name?.trim() || agent.name)} ({agent.role})
                   </option>
                 ))}
               </select>
@@ -2181,7 +2212,7 @@ function EditTaskModal({
                 <option value="">{t('unassigned')}</option>
                 {agents.map(agent => (
                   <option key={agent.name} value={agent.name}>
-                    {agent.name} ({agent.role})
+                    {(agent.display_name?.trim() || agent.name)} ({agent.role})
                   </option>
                 ))}
               </select>

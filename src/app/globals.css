@@ -4,6 +4,9 @@
 
 @layer base {
   :root {
+    --font-sans: "Helvetica Neue", Helvetica, Arial, ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
     /* oklch-based color system for perceptual uniformity */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;

@@ -53,6 +53,13 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
   const isOverlay = mode === 'overlay'
   const selectedConversation = conversations.find((c) => c.id === activeConversation)
   const selectedSession = selectedConversation?.session
+  const selectedAgentName = activeConversation?.startsWith('agent_')
+    ? activeConversation.replace('agent_', '')
+    : null
+  const selectedAgent = selectedAgentName
+    ? agents.find((agent) => agent.name.toLowerCase() === selectedAgentName.toLowerCase())
+    : null
+  const selectedAgentDisplayName = selectedAgent?.display_name?.trim() || selectedConversation?.name || selectedAgentName || activeConversation || ''
 
   // Detect mobile
   useEffect(() => {
@@ -401,12 +408,12 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
             {activeConversation && (
               <div className="bg-surface-1 flex flex-shrink-0 items-center gap-2 border-b border-border/50 px-4 py-2">
                 <AgentAvatar
-                  name={(selectedConversation?.name || activeConversation).replace('agent_', '')}
+                  name={selectedAgentDisplayName}
                   size="sm"
                 />
                 <div className="min-w-0">
                   <div className="truncate text-sm font-medium text-foreground">
-                    {(selectedConversation?.name || activeConversation).replace('agent_', '')}
+                    {selectedAgentDisplayName}
                   </div>
                   <div className="text-[10px] text-muted-foreground">
                     {getConversationStatus(agents, activeConversation)}
@@ -432,7 +439,7 @@ export function ChatWorkspace({ mode = 'embedded', onClose }: ChatWorkspaceProps
                   onSend={handleSend}
                   onAbort={handleAbort}
                   disabled={!canSendMessage}
-                  agents={agents.map(a => ({ name: a.name, role: a.role }))}
+                  agents={agents.map(a => ({ name: a.name, display_name: a.display_name, avatar_url: a.avatar_url, role: a.role }))}
                   isGenerating={isGenerating}
                 />
               </>

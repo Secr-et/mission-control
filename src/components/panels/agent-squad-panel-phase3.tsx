@@ -93,6 +93,10 @@ const statusCardStyles: Record<string, { edge: string; glow: string; dot: string
   },
 }
 
+function getAgentDisplayName(agent: Agent) {
+  return agent.display_name?.trim() || agent.name
+}
+
 export function AgentSquadPanelPhase3() {
   const t = useTranslations('agentSquadPhase3')
   const { agents, setAgents } = useMissionControl()
@@ -403,10 +407,10 @@ export function AgentSquadPanelPhase3() {
                   {/* Header: avatar + name + status */}
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <AgentAvatar name={agent.name} size="md" />
+                      <AgentAvatar name={getAgentDisplayName(agent)} avatarUrl={agent.avatar_url} size="md" />
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <h3 className="font-semibold text-foreground truncate">{agent.name}</h3>
+                          <h3 className="font-semibold text-foreground truncate">{getAgentDisplayName(agent)}</h3>
                           {(agent as any).source && (agent as any).source !== 'manual' && (
                             <span className={`text-2xs px-1.5 py-0.5 rounded-full border ${
                               (agent as any).source === 'local'
@@ -824,10 +828,10 @@ function AgentDetailModalPhase3({
         <div className="px-5 pt-5 pb-0 border-b border-border">
           <div className="flex justify-between items-center gap-4 mb-4">
             <div className="flex items-center gap-3 min-w-0">
-              <AgentAvatar name={agent.name} size="md" />
+              <AgentAvatar name={getAgentDisplayName(agent)} avatarUrl={agent.avatar_url} size="md" />
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-semibold text-foreground leading-tight truncate">{agentState.name}</h3>
+                  <h3 className="text-lg font-semibold text-foreground leading-tight truncate">{getAgentDisplayName(agentState)}</h3>
                   <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border ${statusBadgeStyles[agentState.status]}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${statusColors[agentState.status]}`} />
                     {agentState.status}
@@ -1079,7 +1083,7 @@ function QuickSpawnModal({
       <div className="bg-card border border-border rounded-lg max-w-md w-full p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold text-foreground">
-            Quick Spawn for {agent.name}
+            Quick Spawn for {getAgentDisplayName(agent)}
           </h3>
           <Button onClick={onClose} variant="ghost" size="icon-sm" className="text-2xl">×</Button>
         </div>
@@ -1105,7 +1109,7 @@ function QuickSpawnModal({
               <textarea
                 value={spawnData.task}
                 onChange={(e) => setSpawnData(prev => ({ ...prev, task: e.target.value }))}
-                placeholder={`Delegate a subtask to ${agent.name}...`}
+                placeholder={`Delegate a subtask to ${getAgentDisplayName(agent)}...`}
                 className="w-full h-24 px-3 py-2 bg-surface-1 border border-border rounded text-foreground placeholder-muted-foreground focus:border-primary/50 focus:ring-1 focus:ring-primary/50 resize-none"
               />
             </div>

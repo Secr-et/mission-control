@@ -11,6 +11,8 @@ const log = createClientLogger('AgentSquadPanel')
 interface Agent {
   id: number
   name: string
+  display_name?: string
+  avatar_url?: string | null
   role: string
   session_key?: string
   soul_content?: string
@@ -217,7 +219,7 @@ export function AgentSquadPanel() {
                 {/* Agent Header */}
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="font-semibold text-white text-lg">{agent.name}</h3>
+                    <h3 className="font-semibold text-white text-lg">{agent.display_name?.trim() || agent.name}</h3>
                     <p className="text-gray-400 text-sm">{agent.role}</p>
                   </div>
                   
@@ -371,7 +373,7 @@ function AgentDetailModal({
         <div className="p-6">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h3 className="text-xl font-bold text-white">{agent.name}</h3>
+              <h3 className="text-xl font-bold text-white">{agent.display_name?.trim() || agent.name}</h3>
               <p className="text-gray-400">{agent.role}</p>
             </div>
             <div className="flex items-center gap-3">
