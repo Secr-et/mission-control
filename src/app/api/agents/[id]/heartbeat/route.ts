@@ -264,6 +264,21 @@ export async function POST(
   const getResponse = await GET(request, { params });
   const getBody = await getResponse.json();
 
+  // Apply status override from POST body if provided (e.g., "active" when agent is in conversation)
+  if (body.status && ['active', 'idle', 'online', 'offline'].includes(body.status)) {
+    const resolvedParams = await params;
+    const agentId = resolvedParams.id;
+    let agent: any;
+    if (isNaN(Number(agentId))) {
+      agent = db.prepare('SELECT * FROM agents WHERE name = ? AND workspace_id = ?').get(agentId, workspaceId);
+    } else {
+      agent = db.prepare('SELECT * FROM agents WHERE id = ? AND workspace_id = ?').get(Number(agentId), workspaceId);
+    }
+    if (agent) {
+      db_helpers.updateAgentStatus(agent.name, body.status, body.last_activity || 'Heartbeat check', workspaceId);
+    }
+  }
+
   return NextResponse.json({
     ...getBody,
     token_recorded: tokenRecorded,
