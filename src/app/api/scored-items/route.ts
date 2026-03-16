@@ -3,6 +3,7 @@ import { getDatabase } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
 import { mutationLimiter } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
+import { normalizeUrl } from '@/lib/url-normalize'
 
 /**
  * GET /api/scored-items
@@ -109,12 +110,14 @@ export async function POST(request: NextRequest) {
       for (const item of items) {
         if (!item.source || !item.domain || !item.title || !item.url) continue
 
+        const normalizedUrl = normalizeUrl(String(item.url))
+
         const result = insert.run(
           workspaceId,
           String(item.source).slice(0, 500),
           String(item.domain).slice(0, 100),
           String(item.title).slice(0, 1000),
-          String(item.url).slice(0, 2000),
+          normalizedUrl.slice(0, 2000),
           item.summary ? String(item.summary).slice(0, 5000) : null,
           Number(item.relevance_score) || 0,
           Number(item.actionability_score) || 0,
