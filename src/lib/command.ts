@@ -72,8 +72,14 @@ export function runCommand(
 }
 
 export function runOpenClaw(args: string[], options: CommandOptions = {}) {
+  // Strip OPENCLAW_HOME from spawned openclaw processes to prevent
+  // double-nested config path (~/.openclaw/.openclaw/openclaw.json).
+  // MC uses OPENCLAW_HOME internally for its own config resolution,
+  // but the openclaw CLI should find config naturally.
+  const { OPENCLAW_HOME, ...cleanEnv } = process.env
   return runCommand(config.openclawBin, args, {
     ...options,
+    env: options.env || (cleanEnv as NodeJS.ProcessEnv),
     cwd: options.cwd || config.openclawStateDir || process.cwd()
   })
 }
