@@ -471,9 +471,10 @@ export async function dispatchAssignedTasks(): Promise<{ ok: boolean; message: s
         idempotencyKey: `task-dispatch-${task.id}-${Date.now()}`,
         deliver: false,
       }
-      // Route to appropriate model tier based on task complexity.
-      // null = no override, agent uses its own configured default model.
-      if (dispatchModel) invokeParams.model = dispatchModel
+      // Model override disabled — agents use their own configured models.
+      // The classifyTaskModel() 9router model strings are incompatible with
+      // our gateway, and Haiku is banned in this org. Let agents decide.
+      // if (dispatchModel) invokeParams.model = dispatchModel
 
       // Use --expect-final to block until the agent completes and returns the full
       // response payload (result.payloads[0].text). The two-step agent → agent.wait
