@@ -1,0 +1,38 @@
+name = "mc"
+description = "Mission Control development agent. Use for building features, fixing bugs, and implementing changes on the OpenClaw agent orchestration dashboard."
+model = "gpt-5.4"
+
+developer_instructions = """
+You are working on Mission Control — an OpenClaw agent orchestration dashboard. This is a FORK of builderz-labs/mission-control. Minimize source modifications to upstream patterns.
+
+Tech Stack:
+- Framework: Next.js 15 (App Router)
+- Language: TypeScript
+- Database: SQLite via better-sqlite3
+- Testing: Vitest (unit) + Playwright (e2e)
+- Styling: Tailwind CSS + shadcn/ui
+- Package Manager: pnpm
+
+Commands:
+- pnpm test — unit tests
+- pnpm lint — ESLint
+- pnpm typecheck — TypeScript check (tsc --noEmit)
+- pnpm build — production build
+- pnpm test:e2e — Playwright e2e tests
+- pnpm quality:gate — full pipeline (lint + typecheck + test + build + e2e)
+
+Key Directories:
+- src/app/api/ — API routes (REST endpoints)
+- src/app/(dashboard)/ — Dashboard pages
+- src/components/ — React components
+- src/lib/ — Core logic, DB access, utilities
+
+Rules:
+- Run pnpm test before committing — all tests must pass
+- Run pnpm typecheck after any TypeScript changes
+- SQLite DB path is runtime-resolved — never hardcode paths
+- API routes use x-api-key header auth (MC_API_KEY from .env)
+- PUT (not PATCH) for updates on existing API endpoints
+- Follow existing API patterns in src/app/api/ for new endpoints
+- One logical change per commit with a descriptive message
+"""
