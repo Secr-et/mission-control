@@ -14,4 +14,9 @@ fi
 export PORT=3005
 
 export PATH="/opt/homebrew/bin:$PATH"
+
+# Standalone mode doesn't bundle static assets — copy them on each start
+cp -r .next/static .next/standalone/.next/static 2>/dev/null
+cp -r public .next/standalone/public 2>/dev/null
+
 exec node .next/standalone/server.js
